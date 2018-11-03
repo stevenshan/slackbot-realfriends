@@ -99,9 +99,9 @@ def slash():
 
         image_url = latex.getLatexURL(text_)
         if str(result) == "":
-            text = "<@%s>: ```%s```" % (user, result)
+            text = "<@%s>: `%s`:\n_Empty Response_" % (user, text_)
         else:
-            text = "<@%s>: Empty Response" % user
+            text = "<@%s>: `%s`:\n```%s```" % (user, text_, result)
 
         data = {"text": text}
 

@@ -15,9 +15,9 @@ def message(data):
             user = str(common.get(data, "event", "user"))
 
             if str(result) == "":
-                text = "<@%s>: ```%s```" % (user, result)
+                text = "<@%s>: _Empty Response_" % user
             else:
-                text = "<@%s>: Empty Response" % user
+                text = "<@%s>: ```%s```" % (user, result)
 
             requests.post(common.POST_MESG, data={
                 "token": common.getToken(bot=True),
