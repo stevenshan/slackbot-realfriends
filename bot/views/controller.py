@@ -2,6 +2,7 @@ import os
 import flask
 from bot.views import message, latex
 from urllib.parse import quote as urlencode
+import requests
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
@@ -54,6 +55,7 @@ def slash():
     command = flask.request.values.get("command", "")
     text = flask.request.values.get("text", "")
     user = flask.request.values.get("user_id", "")
+    responseURL = flask.request.values.get("response_url")
 
     if text.strip(" ") == "":
         return "no text received"
@@ -70,9 +72,9 @@ def slash():
 
         image_url = latex.getLatexURL(text_)
         data = {
-            "text": ("*<@%s>*: %s" % (user, text_)),
             "attachments": [
                 {
+                    "text": ("*<@%s>*: %s" % (user, text_)),
                     "image_url": image_url
                 }
             ]
@@ -80,6 +82,8 @@ def slash():
 
         if not preview:
             data["response_type"] = "in_channel"
+            requests.post(responseURL, json=data)
+            return ""
 
         return flask.jsonify(data)
 
