@@ -3,7 +3,7 @@ import flask
 from urllib.parse import quote as urlencode
 import requests
 
-from bot.views import message, latex, file
+from bot.views import message, latex, file, sandbox
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
@@ -52,6 +52,17 @@ def index_post():
 
     return "nothing to see here"
 
+def argParse(text):
+    parts = text.split()
+    preview = False
+    if len(parts) == 0:
+        raise ValueError("rip")
+    elif parts[0] == "preview":
+        preview = True
+        text = " ".join(parts[1:])
+
+    return preview, text
+
 @views.route("/slash", methods=("POST",))
 def slash():
     command = flask.request.values.get("command", "")
@@ -63,14 +74,7 @@ def slash():
         return "no text received"
 
     if command == "/math":
-        parts = text.split()
-        preview = False
-        text_ = text
-        if len(parts) == 0:
-            return "rip"
-        elif parts[0] == "preview":
-            preview = True
-            text_ = " ".join(parts[1:])
+        preview, text_ = argParse(text)
 
         image_url = latex.getLatexURL(text_)
         data = {
@@ -81,6 +85,25 @@ def slash():
                 }
             ]
         }
+
+        if not preview:
+            data["response_type"] = "in_channel"
+            requests.post(responseURL, json=data)
+            return ""
+
+        return flask.jsonify(data)
+    elif command == "/python":
+        preview, text_ = argParse(text)
+
+        result = sandbox.execute(text)
+
+        image_url = latex.getLatexURL(text_)
+        if str(result) == "":
+            text = "<@%s>: ```%s```" % (user, result)
+        else:
+            text = "<@%s>: Empty Response" % user
+
+        data = {"text": text}
 
         if not preview:
             data["response_type"] = "in_channel"
