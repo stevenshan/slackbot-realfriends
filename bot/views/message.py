@@ -14,10 +14,15 @@ def message(data):
         if result is not None:
             user = str(common.get(data, "event", "user"))
 
+            if str(result) == "":
+                text = "<@%s>: ```%s```" % (user, result)
+            else:
+                text = "<@%s>: Empty Response" % user
+
             requests.post(common.POST_MESG, data={
                 "token": common.getToken(bot=True),
                 "channel": common.get(data, "event", "channel"),
-                "text": "<@%s>: ```%s```" % (user, result)
+                "text": text
             })
 
     return ""
