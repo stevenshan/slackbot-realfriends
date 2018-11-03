@@ -1,12 +1,33 @@
+import os
 import flask
 from bot.views import message, latex
+from urllib.parse import quote as urlencode
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
 
+SCOPES = " ".join([
+    "channels:history",
+    "groups:history",
+    "im:history",
+    "mpim:history",
+    "bot",
+    "commands"
+])
+
+REDIRECT_URI = urlencode("https://realfriends-slack-bot.herokuapp.com/ready")
+
 @views.route("/", methods=("GET",))
 def index_get():
-    return "hi"
+    clientID = os.environ.get("CLIENT_ID", "")
+    return flask.redirect(
+        "https://slack.com/oauth/authorize?client_id=%s&scope=%s&redirect_uri=%s" % 
+        (clientID, SCOPES, REDIRECT_URI)
+    ) 
+
+@views.route("/ready", methods=("GET", "POST"))
+def ready():
+    return "ok"
 
 @views.route("/", methods=("POST",))
 def index_post():
