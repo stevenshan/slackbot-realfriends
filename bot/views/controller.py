@@ -99,11 +99,20 @@ def slash():
 
         image_url = latex.getLatexURL(text_)
         if str(result) == "":
-            text = "<@%s>: `%s`:\n_Empty Response_" % (user, text_)
+            header = "<@%s>: `%s`" % (user, text_)
+            body = "_Empty Response_"
         else:
-            text = "<@%s>: `%s`:\n```%s```" % (user, text_, result)
+            header = "<@%s>: `%s`" % (user, text_)
+            body = "```%s```" % result
 
-        data = {"text": text}
+        data = {
+            "text": header,
+            "attachments": [
+                {
+                    "text": body
+                }
+            ]
+        }
 
         if not preview:
             data["response_type"] = "in_channel"
