@@ -19,10 +19,6 @@ def message(data):
             else:
                 text = "<@%s>: ```%s```" % (user, result)
 
-            requests.post(common.POST_MESG, data={
-                "token": common.getToken(bot=True),
-                "channel": common.get(data, "event", "channel"),
-                "text": text
-            })
+            common.postMessage(common.get(data, "event", "channel"), text)
 
     return ""

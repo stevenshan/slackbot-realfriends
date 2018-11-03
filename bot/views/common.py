@@ -1,4 +1,5 @@
 import os
+import requests
 
 def get(dictionary, *keys):
     try:
@@ -15,3 +16,10 @@ def getToken(bot=False):
         return os.environ.get("ACCESS_TOKEN")
 
 POST_MESG = "https://slack.com/api/chat.postMessage"
+
+def postMessage(channel, text):
+    requests.post(POST_MESG, data={
+        "token": getToken(bot=True),
+        "channel": channel,
+        "text": text
+    })
