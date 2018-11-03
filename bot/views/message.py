@@ -15,21 +15,14 @@ def message(data):
             user = str(common.get(data, "event", "user"))
 
             if str(result) == "":
-                header = "<@%s>:" % user
-                body = "_Empty Response_"
+                text = "<@%s>: _Empty Response_" % user
             else:
-                header = "<@%s>:" % user
-                body = "```%s```" % result
+                text = "<@%s>: ```%s```" % (user, result)
 
             requests.post(common.POST_MESG, data={
                 "token": common.getToken(bot=True),
                 "channel": common.get(data, "event", "channel"),
-                "text": header,
-                "attachments": [
-                    {
-                        "text": body 
-                    }
-                ] 
+                "text": text
             })
 
     return ""
