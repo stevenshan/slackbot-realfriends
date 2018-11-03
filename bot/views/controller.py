@@ -53,6 +53,7 @@ def index_post():
 def slash():
     command = flask.request.values.get("command", "")
     text = flask.request.values.get("text", "")
+    user = flask.request.values.get("user_id", "")
 
     if text.strip(" ") == "":
         return "no text received"
@@ -69,6 +70,7 @@ def slash():
 
         image_url = latex.getLatexURL(text_)
         data = {
+            "text": ("*<@%s>*: %s" % (user, text_)),
             "attachments": [
                 {
                     "image_url": image_url
