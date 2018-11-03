@@ -1,7 +1,13 @@
 from io import StringIO
 import sys
+import os
+import traceback
+import signal
 
-localVars = {
+RECURSION_LIMIT = int(os.environ.get("RECURSION_LIMIT", 50))
+TIME_LIMIT = int(os.environ.get("TIME_LIMIT", 1))
+
+environment = {
     "abs": abs,
     "delattr": delattr,
     "hash": hash,
@@ -81,20 +87,38 @@ def safe_import(__import__, module_whitelist):
     return _safe_import
 
 safe_modules = ["re", "math", "random", "time"]
-builtins = {
-    "__import__": safe_import(__import__, safe_modules)
-}
+
+class TimeLimit(Exception):
+    pass
 
 def execute(text):
-    stdout = StringIO()
-    stderr = StringIO()
+    output = StringIO()
 
-    sys.stdout = stdout
-    sys.stderr = stderr
+    _recursionLimit = sys.getrecursionlimit()
+    sys.setrecursionlimit(RECURSION_LIMIT)
 
-    exec(text, {"__builtins__": builtins}, localVars)
+    def signal_handler(signum, frame):
+        raise TimeLimit("Exceeded maximum time limit of %s second(s)" %
+                        TIME_LIMIT)
+
+    sys.stdout = output
+    sys.stderr = output
+
+    try:
+        signal.signal(signal.SIGALRM, signal_handler)
+        signal.alarm(TIME_LIMIT)
+
+        _environment = dict(environment)
+        _environment["__builtins__"] = {
+            "__import__": safe_import(__import__, safe_modules)
+        }
+        exec(text, _environment)
+    except:
+        traceback.print_exc(limit=5)
 
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
-    return stdout.getvalue(), stderr.getvalue()
+    sys.setrecursionlimit(_recursionLimit)
+
+    return output.getvalue()
