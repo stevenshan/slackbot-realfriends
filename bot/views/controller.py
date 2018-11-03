@@ -1,8 +1,9 @@
 import os
 import flask
-from bot.views import message, latex
 from urllib.parse import quote as urlencode
 import requests
+
+from bot.views import message, latex, file
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
@@ -44,9 +45,10 @@ def index_post():
         })
 
 
-    if (data.get("type") == "event_callback" and
-            data.get("event", {}).get("type") == "message"):
-        return message.message(data)
+    if data.get("type") == "event_callback":
+        event = data.get("event", {})
+        if event.get("type") == "message":
+            return message.message(data)
 
     return "nothing to see here"
 

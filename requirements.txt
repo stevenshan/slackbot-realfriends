@@ -13,3 +13,4 @@ requests
 urllib3
 Werkzeug
 grequests
+timeout-decorator

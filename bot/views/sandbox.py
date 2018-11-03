@@ -2,7 +2,8 @@ from io import StringIO
 import sys
 import os
 import traceback
-import signal
+import inspect
+from timeout_decorator import timeout
 
 RECURSION_LIMIT = int(os.environ.get("RECURSION_LIMIT", 50))
 TIME_LIMIT = int(os.environ.get("TIME_LIMIT", 1))
@@ -91,34 +92,39 @@ safe_modules = ["re", "math", "random", "time"]
 class TimeLimit(Exception):
     pass
 
-def execute(text):
+@timeout(TIME_LIMIT, use_signals=False, timeout_exception=TimeLimit)
+def _execute(text, environment):
     output = StringIO()
-
-    _recursionLimit = sys.getrecursionlimit()
-    sys.setrecursionlimit(RECURSION_LIMIT)
-
-    def signal_handler(signum, frame):
-        raise TimeLimit("Exceeded maximum time limit of %s second(s)" %
-                        TIME_LIMIT)
-
     sys.stdout = output
     sys.stderr = output
 
     try:
-        signal.signal(signal.SIGALRM, signal_handler)
-        signal.alarm(TIME_LIMIT)
-
-        _environment = dict(environment)
-        _environment["__builtins__"] = {
-            "__import__": safe_import(__import__, safe_modules)
-        }
-        exec(text, _environment)
+        level = len(inspect.getouterframes(inspect.currentframe()))
+        sys.setrecursionlimit(level + RECURSION_LIMIT)
+        exec(text, environment)
     except:
-        traceback.print_exc(limit=5)
+        traceback.print_exc(limit=1)
+
+    return output.getvalue()
+
+def execute(text):
+
+    _recursionLimit = sys.getrecursionlimit()
+
+    _environment = dict(environment)
+    _environment["__builtins__"] = {
+        "__import__": safe_import(__import__, safe_modules)
+    }
+
+    try:
+        result = _execute(text, _environment)
+    except TimeLimit:
+        result = ("TimeLimit: exceeded time limit of %s seconds" %
+                  TIME_LIMIT)
 
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
 
     sys.setrecursionlimit(_recursionLimit)
 
-    return output.getvalue()
+    return result
