@@ -3,3 +3,5 @@
 *.swp
 deploy.sh
 app.db
+
+private.sh
