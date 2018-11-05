@@ -4,7 +4,7 @@ from urllib.parse import quote as urlencode
 import requests
 
 from bot.views import message, latex, file, common
-from bot.views.sandbox import python
+from bot.views.sandbox import python, javascript
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
@@ -81,6 +81,9 @@ def slash():
 
     elif command == "/python":
         preview, data = common.execute(python, text, user)
+
+    elif command == "/javascript":
+        preview, data = common.execute(javascript, text, user)
 
     else:
         return "unrecognized command '%s'" % command

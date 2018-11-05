@@ -5,10 +5,11 @@ events for when a file is created or modified
 import requests
 
 from bot.views import common
-from bot.views.sandbox import python
+from bot.views.sandbox import python, javascript
 
 INTERPRETERS = {
-    "python": python
+    "python": python,
+    "javascript": javascript
 }
 
 FILE_INFO_URL = "https://slack.com/api/files.info"
