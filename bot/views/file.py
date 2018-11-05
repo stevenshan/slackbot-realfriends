@@ -4,7 +4,12 @@ events for when a file is created or modified
 
 import requests
 
-from bot.views import sandbox, common
+from bot.views import common
+from bot.views.sandbox import python
+
+INTERPRETERS = {
+    "python": python
+}
 
 FILE_INFO_URL = "https://slack.com/api/files.info"
 
@@ -30,7 +35,11 @@ def created(data, as_file = False):
     else:
         file = getFile(common.get(data, "event", "file_id"))
 
-    if common.get(file, "filetype") == "python":
+    filetype = common.get(file, "filetype")
+
+    if filetype in INTERPRETERS:
+        interpreter = INTERPRETERS[filetype]
+
         download = common.get(file, "url_private")
         if download is None or download.strip(" ") == "":
             return None
@@ -47,9 +56,9 @@ def created(data, as_file = False):
 
         content = _content.text
 
-        result = sandbox.execute(content)
+        result = interpreter.execute(content)
         result = str(result).strip("\n")
 
-        return result 
+        return str(filetype).capitalize(), result
 
     return None

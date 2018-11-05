@@ -21,11 +21,11 @@ def message(data):
         result = file.created(data["event"]["files"][0], as_file=True)
 
         if result is not None:
-
+            language, result = result
             if str(result) == "":
-                text = "<@%s>: _Empty Response_" % user
+                text = "<@%s>: %s\n_Empty Response_" % (user, language)
             else:
-                text = "<@%s>: ```%s```" % (user, result)
+                text = "<@%s>: %s ```%s```" % (user, language, result)
 
             common.postMessage(channel, text)
     elif common.get(data, "event", "text").strip(" ") == trigger:

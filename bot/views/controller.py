@@ -3,7 +3,8 @@ import flask
 from urllib.parse import quote as urlencode
 import requests
 
-from bot.views import message, latex, file, sandbox
+from bot.views import message, latex, file, common
+from bot.views.sandbox import python
 
 # create blueprint to register routes to
 views = flask.Blueprint("app", __name__)
@@ -52,17 +53,6 @@ def index_post():
 
     return "nothing to see here"
 
-def argParse(text):
-    parts = text.split()
-    preview = False
-    if len(parts) == 0:
-        raise ValueError("rip")
-    elif parts[0] == "preview":
-        preview = True
-        text = " ".join(parts[1:])
-
-    return preview, text
-
 @views.route("/slash", methods=("POST",))
 def slash():
     command = flask.request.values.get("command", "")
@@ -74,7 +64,7 @@ def slash():
         return "no text received"
 
     if command == "/math":
-        preview, text_ = argParse(text)
+        preview, text_ = common.argParse(text)
 
         image_url = latex.getLatexURL(text_)
         data = {
@@ -88,37 +78,15 @@ def slash():
 
         if not preview:
             data["response_type"] = "in_channel"
-            requests.post(responseURL, json=data)
-            return ""
 
-        return flask.jsonify(data)
     elif command == "/python":
-        preview, text_ = argParse(text)
+        preview, data = common.execute(python, text, user)
 
-        result = sandbox.execute(text)
+    else:
+        return "unrecognized command '%s'" % command
 
-        image_url = latex.getLatexURL(text_)
-        if str(result) == "":
-            header = "<@%s>: `%s`" % (user, text_)
-            body = "_Empty Response_"
-        else:
-            header = "<@%s>: `%s`" % (user, text_)
-            body = "```%s```" % result
+    if not preview:
+        requests.post(responseURL, json=data)
+        return ""
 
-        data = {
-            "text": header,
-            "attachments": [
-                {
-                    "text": body
-                }
-            ]
-        }
-
-        if not preview:
-            data["response_type"] = "in_channel"
-            requests.post(responseURL, json=data)
-            return ""
-
-        return flask.jsonify(data)
-
-    return "unrecognized command '%s'" % command
+    return flask.jsonify(data)
