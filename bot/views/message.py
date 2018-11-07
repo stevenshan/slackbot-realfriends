@@ -32,7 +32,10 @@ def message(data):
         entity = user
         if entity is None or entity == "":
             entity = str(common.get(data, "event", "username"))
+        '''
         common.postMessage(channel,
             "No %s you <@%s>" % (responseWord, entity))
+        '''
+        common.postMessage(channel, "rip bitchbot")
 
     return ""
